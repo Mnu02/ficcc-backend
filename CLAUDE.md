@@ -1,6 +1,33 @@
 # Claude Code Review Guidelines
 
-This file defines the code review standards and guidelines for the ficcc-backend project.
+This file defines the code review standards and guidelines for the ficcc-backend project (Golang).
+
+## Go-Specific Guidelines
+
+### Go Best Practices
+- Follow standard Go formatting (gofmt, goimports)
+- Use idiomatic Go patterns and conventions
+- Check for proper error handling (never ignore errors)
+- Verify proper use of goroutines and channels
+- Check for potential race conditions and data races
+- Ensure proper context usage for cancellation and timeouts
+- Verify defer statements are used correctly
+- Check for proper resource cleanup (close files, connections, etc.)
+
+### Go Code Structure
+- Follow standard Go project layout
+- Use meaningful package names
+- Keep packages focused and cohesive
+- Verify proper use of interfaces
+- Check for appropriate use of pointers vs values
+- Ensure exported names are properly capitalized and documented
+
+### Go Testing
+- Unit tests should follow the `_test.go` naming convention
+- Use table-driven tests where appropriate
+- Check for proper use of testing.T methods
+- Verify test coverage for error paths
+- Look for proper use of test helpers and subtests
 
 ## Review Focus Areas
 
