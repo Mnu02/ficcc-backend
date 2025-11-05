@@ -53,7 +53,7 @@ func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response := WelcomeResponse{
-		Message: "Welcome to FICCC Backend API!",
+		Message: "Hi Developer, Welcome to FICCC Backend API!",
 		Service: "ficcc-backend",
 	}
 
