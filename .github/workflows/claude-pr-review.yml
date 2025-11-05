@@ -17,3 +17,4 @@ jobs:
           prompt: "/review"
           claude_args: "--max-turns 5"
           show_full_output: true
+          use_sticky_comment: true
