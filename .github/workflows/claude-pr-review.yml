@@ -1,20 +1,31 @@
-name: Claude Code Review
+name: Claude PR Review
+
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, reopened, synchronize, ready_for_review]
+
+# Give the job the rights to post review comments
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   review:
+    if: github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
-      contents: read
-      pull-requests: write
     steps:
-      - uses: anthropics/claude-code-action@v1
+      # Claude needs the code/diff in the workspace
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Claude review
+        uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # /review triggers the built-in review flow
           prompt: "/review"
-          claude_args: "--max-turns 5"
-          show_full_output: true
+          # put a single “sticky” summary comment on the PR
           use_sticky_comment: true
+          show_full_output: true
