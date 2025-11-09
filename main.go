@@ -16,6 +16,12 @@ type HealthResponse struct {
 	Service   string    `json:"service"`
 }
 
+// WelcomeResponse represents the welcome message response
+type WelcomeResponse struct {
+	Message string `json:"message"`
+	Service string `json:"service"`
+}
+
 // healthCheckHandler handles the health check endpoint
 func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
@@ -39,6 +45,28 @@ func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// welcomeHandler handles the welcome endpoint
+func welcomeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	response := WelcomeResponse{
+		Message: "Hi Developer, Welcome to FICCC Backend API!",
+		Service: "ficcc-backend",
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("Error encoding response: %v", err)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+}
+
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -46,6 +74,7 @@ func main() {
 	}
 
 	http.HandleFunc("/health", healthCheckHandler)
+	http.HandleFunc("/welcome", welcomeHandler)
 
 	addr := fmt.Sprintf(":%s", port)
 	log.Printf("Server starting on %s", addr)

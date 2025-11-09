@@ -50,6 +50,16 @@ Example response:
 }
 ```
 
+- `GET /welcome` - Welcome message endpoint
+
+Example response:
+```json
+{
+  "message": "Welcome to FICCC Backend API!",
+  "service": "ficcc-backend"
+}
+```
+
 ### Development
 
 ```bash
