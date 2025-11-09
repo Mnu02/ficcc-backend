@@ -6,6 +6,7 @@ on:
 
 # Give the job the rights to post review comments
 permissions:
+  id-token: write
   contents: read
   pull-requests: write
 
