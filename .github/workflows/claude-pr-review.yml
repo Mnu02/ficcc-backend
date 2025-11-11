@@ -40,36 +40,41 @@ jobs:
             const fs = require('fs');
             const logFile = '/home/runner/work/_temp/claude-execution-output.json';
 
-            console.log(`Checking for log file at: ${logFile}`);
-            console.log(`File exists: ${fs.existsSync(logFile)}`);
-
-            if (fs.existsSync(logFile)) {
-              const content = fs.readFileSync(logFile, 'utf8');
-              console.log(`File size: ${content.length} bytes`);
-
-              try {
-                const output = JSON.parse(content);
-                console.log(`Parsed JSON successfully`);
-                console.log(`Output keys: ${Object.keys(output).join(', ')}`);
-
-                const review = output.result || output.message || '';
-                console.log(`Review content length: ${review.length}`);
-
-                if (review && review.trim()) {
-                  console.log('Posting comment to PR...');
-                  const result = await github.rest.issues.createComment({
-                    issue_number: context.issue.number,
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    body: '## 🤖 Claude Code Review\n\n' + review
-                  });
-                  console.log(`Comment posted successfully! Comment ID: ${result.data.id}`);
-                } else {
-                  console.log('Review content is empty, skipping comment');
-                }
-              } catch (e) {
-                console.error(`Error processing output: ${e.message}`);
-              }
-            } else {
+            if (!fs.existsSync(logFile)) {
               console.error(`Log file not found at ${logFile}`);
+              return;
+            }
+
+            try {
+              const content = fs.readFileSync(logFile, 'utf8');
+              const output = JSON.parse(content);
+
+              let review = '';
+
+              // Handle array format (streaming output)
+              if (Array.isArray(output)) {
+                // Find the result message in the array
+                const resultMessage = output.find(msg => msg.type === 'result' && msg.result);
+                if (resultMessage) {
+                  review = resultMessage.result;
+                }
+              } else if (output.result) {
+                // Handle object format
+                review = output.result;
+              }
+
+              if (review && review.trim()) {
+                console.log(`Posting review comment (length: ${review.length})...`);
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: '## 🤖 Claude Code Review\n\n' + review
+                });
+                console.log('Comment posted successfully!');
+              } else {
+                console.log('Review content not found in output');
+              }
+            } catch (e) {
+              console.error(`Error: ${e.message}`);
             }
