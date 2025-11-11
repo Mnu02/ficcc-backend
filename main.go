@@ -70,7 +70,7 @@ func welcomeHandler(w http.ResponseWriter, r *http.Request) {
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "8080x"
 	}
 
 	http.HandleFunc("/health", healthCheckHandler)
