@@ -34,3 +34,12 @@ go.work
 # OS
 .DS_Store
 Thumbs.db
+
+# Test/debug files (prevent accidental commits during development)
+*_test.txt
+*_test.md
+test*.md
+test*.txt
+cleanup.txt
+debug*.txt
+debug*.md
