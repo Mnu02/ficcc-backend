@@ -26,9 +26,21 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
-          # /review triggers the built-in review flow
-          prompt: "/review"
-          # put a single "sticky" summary comment on the PR
+          prompt: |
+            Review the code changes in this pull request.
+
+            Analyze the diff and provide a code review following these guidelines:
+            - Check for Go best practices, proper error handling, and idiomatic patterns
+            - Look for security issues, potential bugs, and edge cases
+            - Verify test coverage for new functionality
+            - Provide constructive feedback with specific suggestions
+            - Flag any blocking issues that should be fixed before merging
+
+            Format your response as a clear, actionable code review with sections for:
+            - Summary of changes
+            - Issues found (if any)
+            - Suggestions for improvement (if any)
+            - Overall assessment
           use_sticky_comment: true
           show_full_output: false
 
