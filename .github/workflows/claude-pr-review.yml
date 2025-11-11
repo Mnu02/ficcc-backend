@@ -22,11 +22,34 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Claude review
+        id: claude_review
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           # /review triggers the built-in review flow
           prompt: "/review"
-          # put a single “sticky” summary comment on the PR
+          # put a single "sticky" summary comment on the PR
           use_sticky_comment: true
-          show_full_output: true
+          show_full_output: false
+
+      - name: Post Claude Review as PR Comment
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const logFile = '/home/runner/work/_temp/claude-execution-output.json';
+
+            if (fs.existsSync(logFile)) {
+              const output = JSON.parse(fs.readFileSync(logFile, 'utf8'));
+              const review = output.result || '';
+
+              if (review) {
+                github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: '## 🤖 Claude Code Review\n\n' + review
+                });
+              }
+            }
