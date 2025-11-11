@@ -22,7 +22,6 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Claude review
-        id: claude_review
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -42,51 +41,4 @@ jobs:
             - Suggestions for improvement (if any)
             - Overall assessment
           use_sticky_comment: true
-          show_full_output: false
-
-      - name: Post Claude Review as PR Comment
-        if: always()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const fs = require('fs');
-            const logFile = '/home/runner/work/_temp/claude-execution-output.json';
-
-            if (!fs.existsSync(logFile)) {
-              console.error(`Log file not found at ${logFile}`);
-              return;
-            }
-
-            try {
-              const content = fs.readFileSync(logFile, 'utf8');
-              const output = JSON.parse(content);
-
-              let review = '';
-
-              // Handle array format (streaming output)
-              if (Array.isArray(output)) {
-                // Find the result message in the array
-                const resultMessage = output.find(msg => msg.type === 'result' && msg.result);
-                if (resultMessage) {
-                  review = resultMessage.result;
-                }
-              } else if (output.result) {
-                // Handle object format
-                review = output.result;
-              }
-
-              if (review && review.trim()) {
-                console.log(`Posting review comment (length: ${review.length})...`);
-                await github.rest.issues.createComment({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: '## 🤖 Claude Code Review\n\n' + review
-                });
-                console.log('Comment posted successfully!');
-              } else {
-                console.log('Review content not found in output');
-              }
-            } catch (e) {
-              console.error(`Error: ${e.message}`);
-            }
+          show_full_output: true
