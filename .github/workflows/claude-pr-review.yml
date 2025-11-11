@@ -18,7 +18,7 @@ jobs:
       # Claude needs the code/diff in the workspace
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           ref: ${{ github.event.pull_request.head.sha }}
 
       - name: Claude review
@@ -40,11 +40,11 @@ jobs:
             - Issues found (if any)
             - Suggestions for improvement (if any)
             - Overall assessment
-          use_sticky_comment: false
-          show_full_output: true
+          show_full_output: false
 
       - name: Post Claude Review as PR Comment
         if: always()
+        timeout-minutes: 5
         uses: actions/github-script@v7
         with:
           script: |
@@ -52,25 +52,21 @@ jobs:
             const logFile = '/home/runner/work/_temp/claude-execution-output.json';
 
             if (!fs.existsSync(logFile)) {
-              console.error(`Log file not found`);
+              console.error('Log file not found');
               return;
             }
 
             try {
               const content = fs.readFileSync(logFile, 'utf8');
               const output = JSON.parse(content);
-
               let review = '';
 
-              // Handle array format (streaming output)
               if (Array.isArray(output)) {
                 const resultMessage = output.find(msg => msg.type === 'result' && msg.result);
-                if (resultMessage) {
-                  review = resultMessage.result;
-                }
+                review = resultMessage?.result || '';
               }
 
-              if (review && review.trim()) {
+              if (review?.trim()) {
                 await github.rest.issues.createComment({
                   issue_number: context.issue.number,
                   owner: context.repo.owner,
@@ -79,5 +75,5 @@ jobs:
                 });
               }
             } catch (e) {
-              console.error(`Error: ${e.message}`);
+              console.error(`Error posting review: ${e.message}`);
             }
