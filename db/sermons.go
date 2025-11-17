@@ -14,14 +14,18 @@ func GetSermons(ctx context.Context) ([]models.Sermon, error) {
 	}
 
 	// Get all sermons
-	rows, err := DB.Query(ctx, "SELECT * FROM sermons")
+	rows, err := DB.Query(ctx, `
+    SELECT id, title, preacher, scripture_ref, sermon_date, sermon_series, youtube_link 
+    FROM sermons
+    ORDER BY sermon_date DESC
+	`)
 	if err != nil {
 		return nil, fmt.Errorf("query failed: %w", err)
 	}
 	defer rows.Close()
 
 	// Slice to hold all sermons
-	var sermons []models.Sermon
+	sermons := make([]models.Sermon, 0)
 
 	// Process rows
 	for rows.Next() {
