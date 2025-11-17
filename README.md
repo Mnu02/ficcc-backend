@@ -40,26 +40,7 @@ make coverage
 
 ### Available Endpoints
 
-- `GET /health` - Health check endpoint that returns service status
-
-Example response:
-```json
-{
-  "status": "healthy",
-  "timestamp": "2024-11-05T15:00:00Z",
-  "service": "ficcc-backend"
-}
-```
-
-- `GET /welcome` - Welcome message endpoint
-
-Example response:
-```json
-{
-  "message": "Welcome to FICCC Backend API!",
-  "service": "ficcc-backend"
-}
-```
+- `GET /sermons` - gets all sermons
 
 ### Development
 
