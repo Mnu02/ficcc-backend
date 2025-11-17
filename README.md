@@ -7,8 +7,11 @@ A Golang backend service for FICCC.
 ### Prerequisites
 - Go 1.21 or higher
 - Make (optional, for using Makefile commands)
+- Supabase account with a project set up
 
 ### Running the Application
+
+The application will automatically load environment variables from the `.env` file:
 
 ```bash
 # Run directly
@@ -18,11 +21,9 @@ go run main.go
 make run
 ```
 
-The server will start on port 8080 by default. You can change this by setting the `PORT` environment variable:
+The server will start on port 8080 by default (or whatever you set in your `.env` file).
 
-```bash
-PORT=3000 go run main.go
-```
+**Important:** Make sure your `.env` file exists with a valid `DATABASE_URL` before running the application, otherwise it will fail to start.
 
 ### Testing
 
