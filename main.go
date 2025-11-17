@@ -1,85 +1,81 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
+
+	"ficcc-backend/db"
+	"ficcc-backend/routes"
+
+	"github.com/joho/godotenv"
 )
 
-// HealthResponse represents the health check response
-type HealthResponse struct {
-	Status    string    `json:"status"`
-	Timestamp time.Time `json:"timestamp"`
-	Service   string    `json:"service"`
-}
-
-// WelcomeResponse represents the welcome message response
-type WelcomeResponse struct {
-	Message string `json:"message"`
-	Service string `json:"service"`
-}
-
-// healthCheckHandler handles the health check endpoint
-func healthCheckHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	response := HealthResponse{
-		Status:    "healthy",
-		Timestamp: time.Now(),
-		Service:   "ficcc-backend",
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		log.Printf("Error encoding response: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-}
-
-// welcomeHandler handles the welcome endpoint
-func welcomeHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	response := WelcomeResponse{
-		Message: "Hi Developer, Welcome to FICCC Backend API!",
-		Service: "ficcc-backend",
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	if err := json.NewEncoder(w).Encode(response); err != nil {
-		log.Printf("Error encoding response: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
-}
-
 func main() {
+	// Load environment variables from .env file
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using system environment variables")
+	}
+
+	// Initialize database connection
+	if err := db.InitDB(); err != nil {
+		log.Fatalf("Failed to initialize database: %v", err)
+	}
+	defer db.CloseDB()
+
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	http.HandleFunc("/health", healthCheckHandler)
-	http.HandleFunc("/welcome", welcomeHandler)
+	router := routes.SetupRoutes()
 
 	addr := fmt.Sprintf(":%s", port)
 	log.Printf("Server starting on %s", addr)
 
-	if err := http.ListenAndServe(addr, nil); err != nil {
-		log.Fatalf("Server failed to start: %v", err)
+	// Set up graceful shutdown
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
+
+	// Channel to receive server errors
+	errChan := make(chan error, 1)
+
+	server := &http.Server{
+		Addr:    addr,
+		Handler: router,
 	}
+
+	// Start server in a goroutine
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			errChan <- err
+		}
+	}()
+
+	// Wait for either interrupt signal or server error
+	select {
+	case err := <-errChan:
+		log.Printf("Server error: %v", err)
+		log.Println("Shutting down server...")
+	case sig := <-sigChan:
+		log.Printf("Received signal: %v", sig)
+		log.Println("Shutting down server...")
+	}
+
+	// Create a context with timeout for graceful shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Gracefully shutdown the HTTP server
+	if err := server.Shutdown(ctx); err != nil {
+		log.Printf("Server forced to shutdown: %v", err)
+	}
+
+	// Database will be closed by defer at line 27
+	log.Println("Server stopped")
 }
