@@ -10,6 +10,7 @@ func SetupRoutes() *mux.Router {
 
 	// Register routes for each table
 	SetupSermonRoutes(router)
+	SetupBibleRoutes(router)
 
 	return router
 }
