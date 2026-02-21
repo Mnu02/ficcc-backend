@@ -10,6 +10,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+// Find docs here: https://api.bible/api-reference
+
 const bibleBaseURL = "https://rest.api.bible/v1"
 
 // SetupBibleRoutes registers all Bible-related routes
