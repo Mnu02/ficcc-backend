@@ -41,6 +41,38 @@ make coverage
 ### Available Endpoints
 
 - `GET /sermons` - gets all sermons
+- `GET /events` - gets all events from Google Sheets
+
+### Events via Google Sheets
+
+Events can be served from a Google Sheet instead of Supabase. This is intended for non-technical staff who are comfortable editing spreadsheet rows.
+
+1. Create a Google Sheet with a tab for events.
+2. Use this exact header row:
+
+```text
+id,name,location,image_url,starts_at,ends_at,description
+```
+
+3. Publish the sheet as CSV or copy a public CSV export URL for the events tab.
+4. Add this to your `.env`:
+
+```bash
+EVENTS_SHEET_CSV_URL=https://docs.google.com/spreadsheets/d/.../pub?output=csv
+```
+
+Supported date/time formats for `starts_at` and `ends_at`:
+- `12/25/2026 4:00 PM`
+- `12/25/2026 4:00:00 PM`
+- `12/25/2026 13:00:00`
+- `2026-05-01T18:30:00Z`
+- `2026-05-01 18:30`
+- `2026-05-01`
+
+Notes:
+- `id`, `name`, `location`, `description` and `starts_at` are required.
+- `image_url` and `ends_at` are optional.
+- If `DATABASE_URL` is not set, the server still starts and `/events` will work, but database-backed endpoints like `/sermons` will not.
 
 ### Development
 
