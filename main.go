@@ -23,10 +23,15 @@ func main() {
 	}
 
 	// Initialize database connection
-	if err := db.InitDB(); err != nil {
-		log.Fatalf("Failed to initialize database: %v", err)
+	dbConfigured := os.Getenv("DATABASE_URL") != ""
+	if dbConfigured {
+		if err := db.InitDB(); err != nil {
+			log.Fatalf("Failed to initialize database: %v", err)
+		}
+		defer db.CloseDB()
+	} else {
+		log.Println("DATABASE_URL not set, skipping database initialization")
 	}
-	defer db.CloseDB()
 
 	port := os.Getenv("PORT")
 	if port == "" {
@@ -76,6 +81,6 @@ func main() {
 		log.Printf("Server forced to shutdown: %v", err)
 	}
 
-	// Database will be closed by defer at line 27
+	// Database will be closed by defer when configured.
 	log.Println("Server stopped")
 }
