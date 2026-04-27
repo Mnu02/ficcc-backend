@@ -42,6 +42,7 @@ make coverage
 
 - `GET /sermons` - gets all sermons
 - `GET /events` - gets all events from Google Sheets
+- `GET /videos` - gets recent public videos from the configured YouTube channel
 
 ### Events via Google Sheets
 
@@ -73,6 +74,28 @@ Notes:
 - `id`, `name`, `location`, `description` and `starts_at` are required.
 - `image_url` and `ends_at` are optional.
 - If `DATABASE_URL` is not set, the server still starts and `/events` will work, but database-backed endpoints like `/sermons` will not.
+
+### Videos via YouTube
+
+Videos are served from the YouTube Data API v3.
+
+1. Create a Google Cloud API key with YouTube Data API v3 enabled.
+2. Add this to your `.env`:
+
+```bash
+YOUTUBE_API_KEY=your-api-key
+YOUTUBE_CHANNEL_ID=your-channel-id
+```
+
+You can also set `YOUTUBE_UPLOADS_PLAYLIST_ID` directly. If it is set, the backend skips the channel lookup and reads videos from that uploads playlist.
+
+Optional query param:
+
+```text
+GET /videos?maxResults=10
+```
+
+`maxResults` defaults to 25 and is capped at 50.
 
 ### Development
 
