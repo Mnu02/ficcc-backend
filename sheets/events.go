@@ -66,9 +66,12 @@ func decodeEventsCSV(reader io.Reader) ([]models.Event, error) {
 			continue
 		}
 
-		event, err := parseEventRow(header, row)
+		// rowIndex is 0-based over the data rows; the spreadsheet row number is
+		// rowIndex+2 (header occupies row 1). We use it as the event ID.
+		sheetRow := rowIndex + 2
+		event, err := parseEventRow(header, row, sheetRow)
 		if err != nil {
-			return nil, fmt.Errorf("row %d: %w", rowIndex+2, err)
+			return nil, fmt.Errorf("row %d: %w", sheetRow, err)
 		}
 		events = append(events, event)
 	}
@@ -76,7 +79,7 @@ func decodeEventsCSV(reader io.Reader) ([]models.Event, error) {
 	return events, nil
 }
 
-func parseEventRow(header, row []string) (models.Event, error) {
+func parseEventRow(header, row []string, id int) (models.Event, error) {
 	rowMap := make(map[string]string, len(header))
 	for i, column := range header {
 		if i < len(row) {
@@ -86,15 +89,11 @@ func parseEventRow(header, row []string) (models.Event, error) {
 		rowMap[column] = ""
 	}
 
-	id := rowMap["id"]
 	name := rowMap["name"]
 	location := rowMap["location"]
 	startsAtRaw := rowMap["starts_at"]
 	description := rowMap["description"]
 
-	if id == "" {
-		return models.Event{}, fmt.Errorf("missing required field id")
-	}
 	if name == "" {
 		return models.Event{}, fmt.Errorf("missing required field name")
 	}
@@ -114,7 +113,7 @@ func parseEventRow(header, row []string) (models.Event, error) {
 	}
 
 	event := models.Event{
-		ID:          id,
+		ID:          int64(id),
 		Name:        name,
 		Description: description,
 		Location:    location,
@@ -144,6 +143,8 @@ func parseTime(value string) (time.Time, error) {
 		"01/02/2006 3:04 PM",
 		"01/02/2006 3:04:05 PM",
 		"01/02/2006 15:04:05",
+		"1/2/2006",
+		"01/02/2006",
 		time.RFC3339,
 		"2006-01-02 15:04",
 		"2006-01-02 15:04:05",
@@ -158,7 +159,7 @@ func parseTime(value string) (time.Time, error) {
 		}
 	}
 
-	return time.Time{}, fmt.Errorf("supported formats: 1/2/2006 3:04 PM, 1/2/2006 3:04:05 PM, 1/2/2006 15:04:05, 01/02/2006 3:04 PM, 01/02/2006 3:04:05 PM, 01/02/2006 15:04:05, RFC3339, 2006-01-02 15:04, 2006-01-02")
+	return time.Time{}, fmt.Errorf("supported formats: 1/2/2006 3:04 PM, 1/2/2006 3:04:05 PM, 1/2/2006 15:04:05, 01/02/2006 3:04 PM, 01/02/2006 3:04:05 PM, 01/02/2006 15:04:05, 1/2/2006, 01/02/2006, RFC3339, 2006-01-02 15:04, 2006-01-02")
 }
 
 func normalizeHeader(row []string) []string {

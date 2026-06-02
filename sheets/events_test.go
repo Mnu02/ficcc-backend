@@ -9,8 +9,8 @@ import (
 
 func TestDecodeEventsCSVParsesRows(t *testing.T) {
 	events, err := decodeEventsCSV(strings.NewReader(
-		"id,name,location,image_url,starts_at,ends_at,description\n" +
-			"event-1,Sunday Service,Main Auditorium,https://example.com/event.jpg,12/25/2026 13:00:00,12/25/2026 15:00:00,Weekly worship gathering\n",
+		"name,location,image_url,starts_at,ends_at,description\n" +
+			"Sunday Service,Main Auditorium,https://example.com/event.jpg,12/25/2026 13:00:00,12/25/2026 15:00:00,Weekly worship gathering\n",
 	))
 	if err != nil {
 		t.Fatalf("decodeEventsCSV returned error: %v", err)
@@ -21,8 +21,8 @@ func TestDecodeEventsCSVParsesRows(t *testing.T) {
 	}
 
 	event := events[0]
-	if event.ID != "event-1" {
-		t.Fatalf("expected ID event-1, got %q", event.ID)
+	if event.ID != 2 {
+		t.Fatalf("expected ID 2 (spreadsheet row), got %d", event.ID)
 	}
 	if event.Name != "Sunday Service" {
 		t.Fatalf("expected name Sunday Service, got %q", event.Name)
@@ -49,8 +49,8 @@ func TestDecodeEventsCSVParsesRows(t *testing.T) {
 
 func TestDecodeEventsCSVParsesAMPMTimes(t *testing.T) {
 	events, err := decodeEventsCSV(strings.NewReader(
-		"id,name,location,image_url,starts_at,ends_at,description\n" +
-			"event-2,Christmas Service,Sanctuary,,12/25/2026 1:00 PM,12/25/2026 4:00 PM,Christmas gathering\n",
+		"name,location,image_url,starts_at,ends_at,description\n" +
+			"Christmas Service,Sanctuary,,12/25/2026 1:00 PM,12/25/2026 4:00 PM,Christmas gathering\n",
 	))
 	if err != nil {
 		t.Fatalf("decodeEventsCSV returned error: %v", err)
@@ -74,8 +74,8 @@ func TestDecodeEventsCSVParsesAMPMTimes(t *testing.T) {
 
 func TestDecodeEventsCSVParsesSingleDigitMonthDay(t *testing.T) {
 	events, err := decodeEventsCSV(strings.NewReader(
-		"id,name,location,image_url,starts_at,ends_at,description\n" +
-			"event-3,Fall Gathering,Hall,,9/12/2026 13:00:00,9/12/2026 15:30:00,Fall event\n",
+		"name,location,image_url,starts_at,ends_at,description\n" +
+			"Fall Gathering,Hall,,9/12/2026 13:00:00,9/12/2026 15:30:00,Fall event\n",
 	))
 	if err != nil {
 		t.Fatalf("decodeEventsCSV returned error: %v", err)
