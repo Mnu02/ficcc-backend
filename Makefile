@@ -1,8 +1,16 @@
-.PHONY: run test build clean fmt lint
+.PHONY: run stop test build clean fmt lint
 
-# Run the application
+# Run the application (frees port 8080 first so a stale server can't linger
+# with an out-of-date .env)
 run:
-	go run main.go
+	@PID=$$(lsof -tiTCP:8080 -sTCP:LISTEN 2>/dev/null); \
+	if [ -n "$$PID" ]; then echo "Stopping existing server on :8080 (PID $$PID)"; kill $$PID; sleep 1; fi
+	go run .
+
+# Stop any server currently holding port 8080
+stop:
+	@PID=$$(lsof -tiTCP:8080 -sTCP:LISTEN 2>/dev/null); \
+	if [ -n "$$PID" ]; then echo "Stopping server on :8080 (PID $$PID)"; kill $$PID; else echo "Nothing listening on :8080"; fi
 
 # Run tests
 test:
@@ -10,7 +18,7 @@ test:
 
 # Build the application
 build:
-	go build -o bin/ficcc-backend main.go
+	go build -o bin/ficcc-backend .
 
 # Clean build artifacts
 clean:
