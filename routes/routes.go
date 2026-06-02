@@ -13,6 +13,7 @@ func SetupRoutes() *mux.Router {
 	SetupEventRoutes(router)
 	SetupBibleRoutes(router)
 	SetupVideoRoutes(router)
+	SetupAnnouncementRoutes(router)
 
 	return router
 }
